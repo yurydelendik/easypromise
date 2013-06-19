@@ -1,0 +1,118 @@
+<!-- Using promises for multiple images loading -->
+<script src="../lib/easypromise.js"></script>
+<script>
+
+// Simple image loading promise wrapper
+function promiseImage(src) {
+  var promise = new Promise();
+  var image = new Image();
+  image.onload = function load() {
+    promise.fulfill(image);
+  };
+  image.onerror = function error() {
+    promise.reject(new Error("Unable to load " + src));
+  };
+  image.src = src;
+  return promise; 
+}
+
+// Loads all images, ignoring missing, using counter
+function promiseImages1(ar) {
+  var promise = new Promise();
+  var images = [];
+  var loaded = 0;
+  for (var i = 0; i < ar.length; i++) {
+    promiseImage(ar[i]).then(function (i, img) {
+      images[i] = img;
+    }.bind(null, i), function (i, ex) {
+      images[i] = null;
+    }.bind(null, i)).then(function () {
+      loaded++;
+      if (loaded == ar.length) {
+        promise.fulfill(images);
+      }
+    });
+  }
+  return promise;
+}
+
+// Loads all images, ignoring missing, using promises chaining
+function promiseImages2(ar) {
+  var images = [];
+  var queue = new Promise();
+  queue.fulfill();
+  for (var i = 0; i < ar.length; i++) {
+    var p = promiseImage(ar[i]).then(function (i, img) {
+      images[i] = img;
+    }.bind(null, i), function (i, ex) {
+      images[i] = null;
+    }.bind(null, i));
+    queue = queue.then(function (p) {
+      return p;
+    }.bind(null, p));
+  }
+  return queue.then(function () {
+    return images;
+  });
+}
+
+// Loads images, starts loading of all images, rejects promise if at least one fails
+function promiseImages3(ar) {
+  var images = [];
+  var queue = new Promise();
+  queue.fulfill();
+  for (var i = 0; i < ar.length; i++) {
+    var p = promiseImage(ar[i]).then(function (i, img) {
+      images[i] = img;
+    }.bind(null, i));
+    queue = queue.then(function (p) {
+      return p;
+    }.bind(null, p));
+  }
+  return queue.then(function () {
+    return images;
+  });
+}
+
+// Loads images, starts loading of images one-by-one, rejects promise at first failure
+function promiseImages4(ar) {
+  var images = [];
+  var queue = new Promise();
+  queue.fulfill();
+  for (var i = 0; i < ar.length; i++) {
+    queue = queue.then(function (i) {
+      return promiseImage(ar[i]).then(function (img) {
+        images[i] = img;
+      });
+    }.bind(null, i));
+  }
+  return queue.then(function () {
+    return images;
+  });
+}
+
+var imagesLocations = [
+  'http://blog.mozilla.org/jay/files/2010/02/mozilla.gif',
+  'http://async5.org/moz/notfound.png',
+  'http://www.mozilla.org/media/img/tabzilla/tab.png'
+];
+
+var promise = promiseImages1(imagesLocations);
+//var promise = promiseImages2(imagesLocations);
+//var promise = promiseImages3(imagesLocations);
+//var promise = promiseImages4(imagesLocations);
+promise.then(function (images) {
+  var infos = [];
+  for (var i = 0; i < images.length; i++) {
+    if (images[i]) {
+      infos.push('image ' + i + ': ' + images[i].width + 'x' + images[i].height);
+    } else {
+      infos.push('image ' + i + ': not loaded');
+    }
+  }
+  alert(infos.join('\n'));
+}, function (ex) {
+  alert('error: ' + ex.message);
+});
+
+</script>

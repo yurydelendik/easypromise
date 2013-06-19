@@ -1,0 +1,21 @@
+<!-- Using promises for event signaling -->
+<script src="../lib/easypromise.js"></script>
+<script>
+
+// Simple single event promise wrapper
+function promiseEvent(subject, eventName, capture) {
+  var promise = new Promise();
+  subject.addEventListener(eventName, function handler(e) {
+    subject.removeEventListener(eventName, handler, capture);
+
+    promise.fulfill(e);
+  }, capture);
+  return promise;
+}
+
+var promise = promiseEvent(document, 'DOMContentLoaded');
+promise.then(function () {
+  alert('Document loaded');
+});
+
+</script>
