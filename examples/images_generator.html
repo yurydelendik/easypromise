@@ -1,0 +1,92 @@
+<!-- Using promises for multiple images loading and ES6 generators -->
+<script src="../lib/easypromise.js"></script>
+<script type="application/javascript;version=1.7">
+
+// Simple image loading promise wrapper
+function promiseImage(src) {
+  var promise = new Promise();
+  var image = new Image();
+  image.onload = function load() {
+    promise.fulfill(image);
+  };
+  image.onerror = function error() {
+    promise.reject(new Error("Unable to load " + src));
+  };
+  image.src = src;
+  return promise; 
+}
+
+// Utility function to process all promises in the iterator
+// stops processing when first non-promise found or iterator is exhuasted
+function promiseForEach(it) {
+  var promise = new Promise();
+  function nextTask(isException, lastResult) {
+    try {
+      var result = !isException ? it.send(lastResult) : it.throw(lastResult);
+      if (typeof result === 'object' && result !== null &&
+          'then' in result) {
+        result.then(function (result) {
+          nextTask(false, result);
+        }, function (ex) {
+          nextTask(true, ex);
+        });
+      } else {
+        promise.fulfill(result);
+      }
+    } catch (ex) {
+      if (!(ex instanceof StopIteration)) {
+        promise.reject(ex)
+      } else {
+        promise.fulfill();
+      }
+    }
+  }
+  nextTask(false);
+  return promise;
+}
+
+var imagesLocations = [
+  'http://blog.mozilla.org/jay/files/2010/02/mozilla.gif',
+  'http://async5.org/moz/notfound.png',
+  'http://www.mozilla.org/media/img/tabzilla/tab.png'
+];
+
+// Loads all images, ignoring missing
+function loadImages1(ar) {
+  var images = [];
+  for (var i = 0; i < ar.length; i++) {
+    try {
+      images[i] = yield promiseImage(ar[i]);
+    } catch (ex) {
+      images[i] = null;
+    }
+  }
+  yield images;
+}
+
+// Loads images, starts loading of images one-by-one, rejects promise at first failure
+function loadImages2(ar) {
+  var images = [];
+  for (var i = 0; i < ar.length; i++) {
+    images[i] = yield promiseImage(ar[i]);
+  }
+  yield images;
+}
+
+var promise = promiseForEach(loadImages1(imagesLocations));
+//var promise = promiseForEach(loadImages2(imagesLocations));
+promise.then(function (images) {
+  var infos = [];
+  for (var i = 0; i < images.length; i++) {
+    if (images[i]) {
+      infos.push('image ' + i + ': ' + images[i].width + 'x' + images[i].height);
+    } else {
+      infos.push('image ' + i + ': not loaded');
+    }
+  }
+  alert(infos.join('\n'));
+}, function (ex) {
+  alert('error: ' + ex);
+});
+
+</script>
