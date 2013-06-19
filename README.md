@@ -1,5 +1,8 @@
-Lightweight implementation of Promises/A+
+Lightweight implementation of [Promises/A+ specification][].
 
-To install development environment: npm install
-To run Promises/A+ tests: npm test
+[Promises/A+ specification]: https://github.com/promises-aplus/promises-spec
 
+To install development environment: `npm install`.
+To run [Promises/A+ tests][]: `npm test`.
+
+[Promises/A+ tests]: https://github.com/promises-aplus/promises-tests
