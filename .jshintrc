@@ -1,0 +1,10 @@
+{
+  // Environments
+  "browser": true,
+  "devel": true,
+  "worker": true,
+
+  // Enforcing
+  "maxlen": 80,
+  "quotmark": "single"
+}
