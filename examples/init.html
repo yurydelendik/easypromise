@@ -1,0 +1,29 @@
+<!-- Using init callback during promise construction -->
+<script src="../lib/easypromise.js"></script>
+
+<script>
+function getImage(src) {
+  return new Promise(function (resolver) {
+      var img = new Image();
+      img.onload = function () { resolver.fulfill(img); };
+      img.onerror = function () { resolver.reject('Image not found: ' + src); };
+      img.src = src;
+    });
+}
+
+var imgPath = 'http://www.mozilla.org/media/img/tabzilla/tab.png';
+//getImage(imgPath).then(
+//  function (img) { alert('Image: ' + img.width + 'x' + img.height); });
+
+var img;
+new Promise(function (resolver) {
+  function imgLoaded(img_) {
+    img = img_;
+  }
+
+  document.addEventListener('DOMContentLoaded', function (e) {
+    // resolving using non-resolved promise
+    resolver.resolve(getImage(imgPath).then(imgLoaded));
+  });
+}).then(function () { alert('Resources loaded: ' + img.width + 'x' + img.height); });
+</script>
