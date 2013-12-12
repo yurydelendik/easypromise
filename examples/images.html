@@ -96,6 +96,13 @@ function promiseImages4(ar) {
   });
 }
 
+// Loads images, using Promise.all
+function promiseImages5(ar) {
+  var images = [];
+  var queue = ar.map(promiseImage);
+  return Promise.all(queue);
+}
+
 var imagesLocations = [
   'http://blog.mozilla.org/jay/files/2010/02/mozilla.gif',
   'http://async5.org/moz/notfound.png',
@@ -106,6 +113,7 @@ var promise = promiseImages1(imagesLocations);
 //var promise = promiseImages2(imagesLocations);
 //var promise = promiseImages3(imagesLocations);
 //var promise = promiseImages4(imagesLocations);
+//var promise = promiseImages5(imagesLocations);
 promise.then(function (images) {
   var infos = [];
   for (var i = 0; i < images.length; i++) {
