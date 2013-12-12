@@ -3,10 +3,10 @@
 
 <script>
 function getImage(src) {
-  return new Promise(function (resolver) {
+  return new Promise(function (fulfill, reject) {
       var img = new Image();
-      img.onload = function () { resolver.fulfill(img); };
-      img.onerror = function () { resolver.reject('Image not found: ' + src); };
+      img.onload = function () { fulfill(img); };
+      img.onerror = function () { reject('Image not found: ' + src); };
       img.src = src;
     });
 }
@@ -16,14 +16,14 @@ var imgPath = 'http://www.mozilla.org/media/img/tabzilla/tab.png';
 //  function (img) { alert('Image: ' + img.width + 'x' + img.height); });
 
 var img;
-new Promise(function (resolver) {
+new Promise(function (fulfill) {
   function imgLoaded(img_) {
     img = img_;
   }
 
   document.addEventListener('DOMContentLoaded', function (e) {
     // resolving using non-resolved promise
-    resolver.resolve(getImage(imgPath).then(imgLoaded));
+    fulfill(getImage(imgPath).then(imgLoaded));
   });
 }).then(function () { alert('Resources loaded: ' + img.width + 'x' + img.height); });
 </script>

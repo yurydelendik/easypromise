@@ -4,12 +4,13 @@
 
 // Simple single event promise wrapper
 function promiseEvent(subject, eventName, capture) {
-  var promise = new Promise();
-  subject.addEventListener(eventName, function handler(e) {
-    subject.removeEventListener(eventName, handler, capture);
+  var promise = new Promise(function (fulfill) {
+    subject.addEventListener(eventName, function handler(e) {
+      subject.removeEventListener(eventName, handler, capture);
 
-    promise.fulfill(e);
-  }, capture);
+      fulfill(e);
+    }, capture);
+  });
   return promise;
 }
 
